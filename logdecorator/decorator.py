@@ -41,7 +41,8 @@ class LoggingDecorator(object):
         return logging.getLogger(function.__module__)
 
     def __call__(self, log_level, message, on_exceptions=None,
-                 reraise=False, logger=None):
+                 reraise=False, logger=None, result_format_variable="result",
+                 exception_format_variable="e"):
         exceptions = tuple(on_exceptions or [])
 
         def decorator(function):
@@ -51,19 +52,25 @@ class LoggingDecorator(object):
             @wraps(function)
             def wrapper(*args, **kwargs):
                 nonlocal message
+                nonlocal result_format_variable
+                nonlocal exception_format_variable
                 extensive_kwargs = self.build_extensive_kwargs(function,
                                                                *args,
                                                                **kwargs)
-                message = message.format(**extensive_kwargs)
 
                 if self.log_before_execution:
-                    self.before_execution(logger, log_level, message)
+                    self.before_execution(logger,
+                                          log_level,
+                                          message.format(**extensive_kwargs))
 
                 try:
                     result = function(*args, **kwargs)
-                except exceptions:
+                except exceptions as e:
                     if log_on_error:
-                        self.on_error(logger, log_level, message)
+                        extensive_kwargs[exception_format_variable] = e
+                        self.on_error(logger,
+                                      log_level,
+                                      message.format(**extensive_kwargs))
 
                     if reraise:
                         raise
@@ -71,7 +78,10 @@ class LoggingDecorator(object):
                     return
 
                 if self.log_after_execution:
-                    self.after_execution(logger, log_level, message)
+                    extensive_kwargs[result_format_variable] = result
+                    self.after_execution(logger,
+                                         log_level,
+                                         message.format(**extensive_kwargs))
 
                 return result
 

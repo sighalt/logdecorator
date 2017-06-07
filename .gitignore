@@ -5,3 +5,4 @@ __pycache__/
 logdecorator.egg-info/
 dist
 build
+README

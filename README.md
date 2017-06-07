@@ -131,6 +131,20 @@ Each decorator takes the following arguments:
 >
 > Default: False
 
+**result_format_variable** *(optional)*
+> The variable name one can use in the message to reference the result of the
+> decorated function
+> e.g. @log_on_end(DEBUG, "Result was: {result!r}")
+>
+> Default: "result"
+
+**exception_format_variable** *(optional)*
+> The variable name one can use in the message to reference the caught exception
+> raised in the decorated function
+> e.g. @log_on_error(ERROR, "Error was: {e!r}", ...)
+>
+> Default: "e"
+
 ### Use variables in messages
 
 The message, given to the decorator, is treated as a python format string which

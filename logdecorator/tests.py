@@ -135,3 +135,28 @@ class TestLoggingDecorator(TestCase):
 
         logger.log.assert_called_once_with(0, "Hello world. My name is Testuser"
                                               ", I am 16 old")
+
+    def test_message_formatting_result(self):
+        dec = LoggingDecorator(log_after_execution=True)
+        logger = Mock()
+        message = "{result:s}"
+        function = Mock(return_value="asdasdasd")
+        decorated_function = (dec(0, message, logger=logger)(function))
+
+        decorated_function()
+
+        logger.log.assert_called_once_with(0, "asdasdasd")
+
+    def test_message_formatting_exception(self):
+        dec = LoggingDecorator(log_on_exception=True)
+        MyExc = type("MyExc", (Exception,), {"myvar": "myvar"})
+        logger = Mock()
+        message = "{e.myvar:s}"
+        function = Mock(side_effect=MyExc())
+        decorated_function = (dec(0, message, logger=logger,
+                                  reraise=False, on_exceptions=[MyExc])
+                              (function))
+
+        decorated_function()
+
+        logger.log.assert_called_once_with(0, "myvar")
