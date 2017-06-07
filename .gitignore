@@ -2,3 +2,6 @@
 coverage.xml
 .idea/
 __pycache__/
+logdecorator.egg-info/
+dist
+build

@@ -1,25 +1,29 @@
 # Logdecorator
 
 Move logging code out of your business logic with python decorators.
-Logging is a nice tool in your toolbox for tracing bugs and getting a better
-sense how your application is working in production.
 
-But if you are like me, you often omit logging code, so it isn't hiding business
-logic and feature your code with complexity.
+Logging is a nice tool in your toolbox for tracing bugs and getting a better
+sense how your application is working in production. But if you are like me, you
+often omit logging code, so it will not hide business logic or feature your code
+with complexity.
 
 Fortunately pythons decorator now came to our rescue and provides us with a nice
-tool to add logging to our code without stealing readability and
+library to add logging to our code without stealing readability and
 understandability.
 
-# Installation
+## Installation
 
-`pip install logdecorator`
+Installation is as easy as it can get:
 
-# How to use it
+```bash
+$ pip install logdecorator
+```
+
+## How to use it
 
 Imagine a function `download` with no arguments and some download code in it.
 
-```
+```python
 def download():
     # some download code
 
@@ -86,9 +90,9 @@ you actually fill in business logic into `# some download code` it should become
 obvious :)
 
 
-# What logdecorator can do for you
+## What logdecorator can do for you
 
-## Decorators
+### Decorators
 
 logdecorator provides three different built-in decorators:
 
@@ -99,7 +103,7 @@ logdecorator provides three different built-in decorators:
 whose behaviour corresponds to their names.
 
 
-## Arguments
+### Arguments
 
 Each decorator takes the following arguments:
 
@@ -127,7 +131,7 @@ Each decorator takes the following arguments:
 >
 > Default: False
 
-## Use variables in messages
+### Use variables in messages
 
 The message, given to the decorator, is treated as a python format string which
 takes the functions arguments as format arguments.

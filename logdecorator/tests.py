@@ -1,7 +1,7 @@
 from unittest import TestCase
 from unittest.mock import Mock, patch
 
-from logdecorator import LoggingDecorator
+from .decorator import LoggingDecorator
 
 
 def test_func(arg1, arg2, kwarg1=None, kwarg2=None):
