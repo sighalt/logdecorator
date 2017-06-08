@@ -11,6 +11,9 @@ Fortunately pythons decorator now came to our rescue and provides us with a nice
 library to add logging to our code without stealing readability and
 understandability.
 
+If you want to know more about the intentions behind logdecorator check out my
+[blog post](https://www.sighalt.de/remove-visual-noise-of-logging-code-by-using-decorators.html).
+
 ## Installation
 
 Installation is as easy as it can get:
