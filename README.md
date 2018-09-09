@@ -112,6 +112,34 @@ logdecorator provides three different built-in decorators:
 whose behaviour corresponds to their names.
 
 
+### Use variables in messages
+
+The message, given to the decorator, is treated as a python format string which
+takes the functions arguments as format arguments.
+
+Sticking to the previous example one could write:
+
+```python
+
+import logging
+from logdecorator import log_on_start
+from .exceptions import MyException1, MyException2
+
+
+@log_on_start(logging.DEBUG, "Start downloading '{url:s}'")
+def download(url):
+    # some download code
+
+
+if __name__ == "__main__":
+    download("http://my.file.com/file.bin")
+
+```
+
+Which results in the message `Start downloading 'http://my.file.com/file.bin'`
+gets logged.
+
+
 ### Arguments
 
 Each decorator takes the following arguments:
@@ -153,30 +181,3 @@ Each decorator takes the following arguments:
 > e.g. @log_on_error(ERROR, "Error was: {e!r}", ...)
 >
 > Default: "e"
-
-### Use variables in messages
-
-The message, given to the decorator, is treated as a python format string which
-takes the functions arguments as format arguments.
-
-Sticking to the previous example one could write:
-
-```python
-
-import logging
-from logdecorator import log_on_start
-from .exceptions import MyException1, MyException2
-
-
-@log_on_start(logging.DEBUG, "Start downloading '{url:s}'")
-def download(url):
-    # some download code
-
-
-if __name__ == "__main__":
-    download("http://my.file.com/file.bin")
-
-```
-
-Which results in the message `Start downloading 'http://my.file.com/file.bin'`
-gets logged.
