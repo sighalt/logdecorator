@@ -14,6 +14,11 @@ understandability.
 If you want to know more about the intentions behind logdecorator check out my
 [blog post](https://www.sighalt.de/remove-visual-noise-of-logging-code-by-using-decorators.html).
 
+## Update: logdecorator==2.0
+
+Thanks to all dependants :) I just released a new version of logdecorator (2.0).
+You can checkout the changes at my [blog](https://www.sighalt.de/a-new-logdecorator-version-is-available-o.html).
+
 ## Installation
 
 Installation is as easy as it can get:
