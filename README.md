@@ -102,6 +102,7 @@ logdecorator provides three different built-in decorators:
  * log_on_start
  * log_on_end
  * log_on_error
+ * log_exception
 
 whose behaviour corresponds to their names.
 

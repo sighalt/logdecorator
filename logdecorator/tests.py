@@ -1,162 +1,105 @@
+import logging
 from unittest import TestCase
 from unittest.mock import Mock, patch
 
-from .decorator import LoggingDecorator
+from .decorator import log_exception, log_on_start, log_on_error, log_on_end
 
 
 def test_func(arg1, arg2, kwarg1=None, kwarg2=None):
-    return
+    return arg1 + arg2
 
 
-class TestLoggingDecorator(TestCase):
+class TestException(Exception):
+    pass
 
-    def test_build_extensive_kwargs_only_args(self):
-        dec = LoggingDecorator()
-        extensive_kwargs = dec.build_extensive_kwargs(test_func, "arg1", "arg2")
 
-        self.assertEqual({"arg1": "arg1", "arg2": "arg2"},
-                         extensive_kwargs)
+class MockLoggingHandler(logging.Handler):
+    """Mock logging handler to check for expected logs.
 
-    def test_build_extensive_kwargs_only_kwargs(self):
-        dec = LoggingDecorator()
-        extensive_kwargs = dec.build_extensive_kwargs(test_func,
-                                                      arg1="arg1",
-                                                      arg2="arg2",
-                                                      kwarg1="kwarg1")
+    Messages are available from an instance's ``messages`` dict, in order, indexed by
+    a lowercase log level string (e.g., 'debug', 'info', etc.).
+    """
 
-        self.assertEqual({"arg1": "arg1", "arg2": "arg2", "kwarg1": "kwarg1"},
-                         extensive_kwargs)
+    def __init__(self, *args, **kwargs):
+        self.messages = {'debug': [], 'info': [], 'warning': [], 'error': [],
+                         'critical': []}
+        super(MockLoggingHandler, self).__init__(*args, **kwargs)
 
-    def test_build_extensive_kwargs_mixed(self):
-        dec = LoggingDecorator()
-        extensive_kwargs = dec.build_extensive_kwargs(test_func,
-                                                      "arg1",
-                                                      arg2="arg2",
-                                                      kwarg1="kwarg1")
+    def emit(self, record):
+        "Store a message from ``record`` in the instance's ``messages`` dict."
+        try:
+            self.messages[record.levelname.lower()].append(record.getMessage())
+        except Exception:
+            self.handleError(record)
 
-        self.assertEqual({"arg1": "arg1", "arg2": "arg2", "kwarg1": "kwarg1"},
-                         extensive_kwargs)
+    def reset(self):
+        self.acquire()
+        try:
+            for message_list in self.messages.values():
+                message_list.clear()
+        finally:
+            self.release()
 
-    def test_catch_exception(self):
-        dec = LoggingDecorator()
-        MyExc = type("MyExc", (Exception,), {})
-        function = Mock(side_effect=MyExc)
-        decorated_function = (dec(0, "testmessage", on_exceptions=[MyExc],
-                                  reraise=False)
-                              (function))
 
-        decorated_function()
-        function.assert_called_once()
+class TestDecorators(TestCase):
 
-    def test_reraise_exception(self):
-        dec = LoggingDecorator()
-        MyExc = type("MyExc", (Exception,), {})
-        function = Mock(side_effect=MyExc)
-        decorated_function = (dec(0, "testmessage", on_exceptions=[MyExc],
-                                  reraise=True)
-                              (function))
+    def setUp(self):
+        self.logger = logging.Logger("mocked")
+        self.log_handler = MockLoggingHandler()
+        self.log_handler.setFormatter("%(msg)s")
+        self.logger.addHandler(self.log_handler)
 
-        with self.assertRaises(MyExc):
-            decorated_function()
+    def test_log_on_start(self):
+        dec = log_on_start(logging.INFO,
+                           "test message {arg1:d}, {arg2:d}",
+                           logger=self.logger)
+        fn = dec(test_func)
+        fn(1, 2)
+        self.assertIn("test message 1, 2", self.log_handler.messages["info"])
 
-    def test_before_execution_hook(self):
-        dec = LoggingDecorator(log_before_execution=True)
-        dec.before_execution = Mock()
-        dec.after_execution = Mock()
-        dec.on_error = Mock()
-        function = Mock()
-        decorated_function = (dec(0, "testmessage")(function))
+    def test_log_on_end(self):
+        dec = log_on_end(logging.INFO,
+                         "test message {arg1:d}, {arg2:d} => {result:d}",
+                         logger=self.logger)
+        fn = dec(test_func)
+        fn(1, 2)
+        self.assertIn("test message 1, 2 => 3",
+                      self.log_handler.messages["info"])
 
-        decorated_function()
+    def test_log_on_error(self):
+        mocked_func = Mock(side_effect=TestException("test exception"))
 
-        function.assert_called_once()
-        dec.before_execution.assert_called_once()
-        dec.after_execution.assert_not_called()
-        dec.on_error.assert_not_called()
+        dec = log_on_error(logging.INFO,
+                           "test message {e!r}",
+                           logger=self.logger,
+                           on_exceptions=TestException)
+        fn = dec(mocked_func)
+        fn(1, 2)
+        self.assertIn("test message TestException('test exception',)",
+                      self.log_handler.messages["info"])
 
-    def test_after_execution_hook(self):
-        dec = LoggingDecorator(log_after_execution=True)
-        dec.before_execution = Mock()
-        dec.after_execution = Mock()
-        dec.on_error = Mock()
-        function = Mock()
-        decorated_function = (dec(0, "testmessage")(function))
+    def test_log_on_error_reraise(self):
+        mocked_func = Mock(side_effect=TestException("test exception"))
 
-        decorated_function()
+        dec = log_on_error(logging.INFO,
+                           "test message {e!r}",
+                           logger=self.logger,
+                           on_exceptions=TestException,
+                           reraise=True)
+        fn = dec(mocked_func)
 
-        function.assert_called_once()
-        dec.before_execution.assert_not_called()
-        dec.after_execution.assert_called_once()
-        dec.on_error.assert_not_called()
+        with self.assertRaises(TestException):
+            fn(1, 2)
 
-    def test_on_error(self):
-        dec = LoggingDecorator(log_after_execution=True)
-        dec.before_execution = Mock()
-        dec.after_execution = Mock()
-        dec.on_error = Mock()
-        function = Mock(side_effect=Exception)
-        decorated_function = (dec(0, "testmessage", on_exceptions=[Exception],
-                                  reraise=False)
-                              (function))
+        self.assertIn("test message TestException('test exception',)",
+                      self.log_handler.messages["info"])
 
-        decorated_function()
-
-        function.assert_called_once()
-        dec.before_execution.assert_not_called()
-        dec.after_execution.assert_not_called()
-        dec.on_error.assert_called_once()
-
-    def test_autocreate_logger(self):
-        dec = LoggingDecorator()
-        function = Mock()
-
-        with patch("logging.getLogger", Mock()) as getLogger:
-            decorated_function = dec(0, "test")(function)
-            decorated_function()
-            getLogger.assert_called_once()
-
-    def test_custom_logger(self):
-        dec = LoggingDecorator()
-        function = Mock()
-        custom_logger = Mock()
-
-        with patch("logging.getLogger", Mock()) as getLogger:
-            decorated_function = dec(0, "test", logger=custom_logger)(function)
-            decorated_function()
-            getLogger.assert_not_called()
-
-    def test_message_formatting(self):
-        dec = LoggingDecorator(log_before_execution=True)
-        logger = Mock()
-        message = "Hello world. My name is {arg1:s}, I am {arg2:d} old"
-        decorated_function = (dec(0, message, logger=logger)(test_func))
-
-        decorated_function(arg1="Testuser", arg2=16)
-
-        logger.log.assert_called_once_with(0, "Hello world. My name is Testuser"
-                                              ", I am 16 old")
-
-    def test_message_formatting_result(self):
-        dec = LoggingDecorator(log_after_execution=True)
-        logger = Mock()
-        message = "{result:s}"
-        function = Mock(return_value="asdasdasd")
-        decorated_function = (dec(0, message, logger=logger)(function))
-
-        decorated_function()
-
-        logger.log.assert_called_once_with(0, "asdasdasd")
-
-    def test_message_formatting_exception(self):
-        dec = LoggingDecorator(log_on_exception=True)
-        MyExc = type("MyExc", (Exception,), {"myvar": "myvar"})
-        logger = Mock()
-        message = "{e.myvar:s}"
-        function = Mock(side_effect=MyExc())
-        decorated_function = (dec(0, message, logger=logger,
-                                  reraise=False, on_exceptions=[MyExc])
-                              (function))
-
-        decorated_function()
-
-        logger.log.assert_called_once_with(0, "myvar")
+    def test_log_exception(self):
+        self.logger.exception = Mock()
+        dec = log_exception(logging.ERROR,
+                            "test message",
+                            logger=self.logger,
+                            on_exceptions=TypeError)
+        fn = dec(test_func)
+        fn(2, "asd")
+        self.assertEqual(self.logger.exception.call_count, 1)

@@ -1,33 +1,34 @@
 import inspect
 import logging
 from functools import wraps
+from warnings import warn
 
 
 class LoggingDecorator(object):
-    """
-    Base decorator factory.
 
-    The instances of this classes can be used as logging decorators.
-    """
+    def __init__(self, log_level, message, *, logger=None):
+        self.log_level = log_level
+        self.message = message
+        self._logger = logger
 
-    def __init__(self,
-                 log_before_execution=False,
-                 log_after_execution=False,
-                 log_on_exception=False):
-        """
-        Initializer
+    def before_execution(self, fn, *args, **kwargs):
+        pass
 
-        :param log_before_execution: enable logging before execution of the
-        decorated function
-        :param log_after_execution: enable logging after execution of the
-        decorated function
-        :param log_on_exception: enable logging on error in the decorated
-        function
-        :param reraise_exceptions: En-/disable reraising of catched exceptions
-        """
-        self.log_before_execution = log_before_execution
-        self.log_after_execution = log_after_execution
-        self.log_on_exception = log_on_exception
+    def after_execution(self, fn, result, *args, **kwargs):
+        pass
+
+    def on_error(self, fn, exception, *args, **kwargs):
+        raise exception
+
+    @staticmethod
+    def log(logger, log_level, msg):
+        logger.log(log_level, msg)
+
+    def get_logger(self, fn):
+        if self._logger is None:
+            self._logger = logging.getLogger(fn.__module__)
+
+        return self._logger
 
     @staticmethod
     def build_extensive_kwargs(fn, *args, **kwargs):
@@ -36,68 +37,89 @@ class LoggingDecorator(object):
 
         return extensive_kwargs.arguments
 
-    @staticmethod
-    def get_logger(function):
-        return logging.getLogger(function.__module__)
+    def __call__(self, fn):
 
-    def __call__(self, log_level, message, on_exceptions=None,
-                 reraise=False, logger=None, result_format_variable="result",
-                 exception_format_variable="e"):
-        exceptions = tuple(on_exceptions or [])
+        @wraps(fn)
+        def wrapper(*args, **kwargs):
+            self.before_execution(fn, *args, **kwargs)
 
-        def decorator(function):
-            nonlocal logger
-            logger = logger or self.get_logger(function)
-
-            @wraps(function)
-            def wrapper(*args, **kwargs):
-                nonlocal message
-                nonlocal result_format_variable
-                nonlocal exception_format_variable
-                extensive_kwargs = self.build_extensive_kwargs(function,
-                                                               *args,
-                                                               **kwargs)
-
-                if self.log_before_execution:
-                    self.before_execution(logger,
-                                          log_level,
-                                          message.format(**extensive_kwargs))
-
-                try:
-                    result = function(*args, **kwargs)
-                except exceptions as e:
-                    if log_on_error:
-                        extensive_kwargs[exception_format_variable] = e
-                        self.on_error(logger,
-                                      log_level,
-                                      message.format(**extensive_kwargs))
-
-                    if reraise:
-                        raise
-
-                    return
-
-                if self.log_after_execution:
-                    extensive_kwargs[result_format_variable] = result
-                    self.after_execution(logger,
-                                         log_level,
-                                         message.format(**extensive_kwargs))
+            try:
+                result = fn(*args, **kwargs)
+            except Exception as e:
+                self.on_error(fn, e, *args, **kwargs)
+            else:
+                self.after_execution(fn, result, *args, **kwargs)
 
                 return result
 
-            return wrapper
+        return wrapper
 
-        return decorator
+
+class log_on_start(LoggingDecorator):
+
+    def before_execution(self, fn, *args, **kwargs):
+        logger = self.get_logger(fn)
+        extensive_kwargs = self.build_extensive_kwargs(fn, *args, **kwargs)
+        msg = self.message.format(**extensive_kwargs)
+
+        self.log(logger, self.log_level, msg)
+
+
+class log_on_end(LoggingDecorator):
+
+    def __init__(self, log_level, message, *, logger=None,
+                 result_format_variable="result"):
+        super().__init__(log_level, message, logger=logger)
+        self.result_format_variable = result_format_variable
+
+    def after_execution(self, fn, result, *args, **kwargs):
+        logger = self.get_logger(fn)
+        extensive_kwargs = self.build_extensive_kwargs(fn, *args, **kwargs)
+        extensive_kwargs[self.result_format_variable] = result
+        msg = self.message.format(**extensive_kwargs)
+
+        self.log(logger, self.log_level, msg)
+
+
+class log_on_error(LoggingDecorator):
+
+    def __init__(self, log_level, message, *, logger=None,
+                 on_exceptions=None, reraise=False,
+                 exception_format_variable="e"):
+        super().__init__(log_level, message, logger=logger)
+        self.on_exceptions = on_exceptions
+        self.reraise = reraise
+        self.exception_format_variable = exception_format_variable
+
+    def _log_error(self, fn, exception, *args, **kwargs):
+        logger = self.get_logger(fn)
+        extensive_kwargs = self.build_extensive_kwargs(fn, *args, **kwargs)
+        extensive_kwargs[self.exception_format_variable] = exception
+        msg = self.message.format(**extensive_kwargs)
+
+        self.log(logger, self.log_level, msg)
+
+    def on_error(self, fn, exception, *args, **kwargs):
+        try:
+            raise exception
+        except self.on_exceptions:
+            self._log_error(fn, exception, *args, **kwargs)
+
+            if self.reraise:
+                raise
+
+
+class log_exception(log_on_error):
+
+    def __init__(self, log_level, message, *, logger=None, on_exceptions=None,
+                 reraise=False, exception_format_variable="e"):
+        if log_level != logging.ERROR:
+            warn("`log_exception` can only log into ERROR log level")
+
+        super().__init__(log_level, message, logger=logger,
+                         on_exceptions=on_exceptions, reraise=reraise,
+                         exception_format_variable=exception_format_variable)
 
     @staticmethod
-    def log(logger, log_level, message):
-        logger.log(log_level, message)
-
-    before_execution = log
-    after_execution = log
-    on_error = log
-
-
-log_on_start = LoggingDecorator(log_before_execution=True)
-log_on_end = LoggingDecorator(log_after_execution=True)
-log_on_error = LoggingDecorator(log_on_exception=True)
+    def log(logger, log_level, msg):
+        logger.exception(msg)
