@@ -84,10 +84,18 @@ class log_on_end(LoggingDecorator):
 class log_on_error(LoggingDecorator):
 
     def __init__(self, log_level, message, *, logger=None,
-                 on_exceptions=None, reraise=False,
+                 on_exceptions=None, reraise=None,
                  exception_format_variable="e"):
         super().__init__(log_level, message, logger=logger)
         self.on_exceptions = on_exceptions
+
+        if reraise is None:
+            warn("The default value of the `reraise` parameter will be changed "
+                 "to `True` in the future. If you rely on catching the"
+                 "exception, you should explicitly set `reraise` to `False`.",
+                 category=DeprecationWarning)
+            reraise = False
+
         self.reraise = reraise
         self.exception_format_variable = exception_format_variable
 
@@ -112,7 +120,7 @@ class log_on_error(LoggingDecorator):
 class log_exception(log_on_error):
 
     def __init__(self, log_level, message, *, logger=None, on_exceptions=None,
-                 reraise=False, exception_format_variable="e"):
+                 reraise=None, exception_format_variable="e"):
         if log_level != logging.ERROR:
             warn("`log_exception` can only log into ERROR log level")
 
