@@ -1,5 +1,7 @@
 # Logdecorator
 
+[![Downloads](https://pepy.tech/badge/logdecorator)](https://pepy.tech/project/logdecorator)
+
 Move logging code out of your business logic with python decorators.
 
 Logging is a nice tool in your toolbox for tracing bugs and getting a better
@@ -12,12 +14,12 @@ library to add logging to our code without stealing readability and
 understandability.
 
 If you want to know more about the intentions behind logdecorator check out my
-[blog post](https://www.sighalt.de/remove-visual-noise-of-logging-code-by-using-decorators.html).
+[blog post](https://www.sighalt.de/remove-visual-noise-of-logging-code-by-using-python-decorators.html).
 
 ## Update: logdecorator==2.0
 
 Thanks to all dependants :) I just released a new version of logdecorator (2.0).
-You can checkout the changes at my [blog](https://www.sighalt.de/a-new-logdecorator-version-is-available-o.html).
+You can read the changes at my [blog](https://www.sighalt.de/a-new-logdecorator-version-is-available-o.html).
 
 ## Installation
 
@@ -102,7 +104,7 @@ obvious :)
 
 ### Decorators
 
-logdecorator provides three different built-in decorators:
+logdecorator provides four different built-in decorators:
 
  * log_on_start
  * log_on_end
@@ -142,19 +144,13 @@ gets logged.
 
 ### Arguments
 
-Each decorator takes the following arguments:
+#### log_on_start
 
 **log_level**
 > The log level at which the message should be send
 
 **message**
 > The message to log
-
-**on_exceptions** *(optional)*
-> A list containing exception classes which should get caught and trigger the
-> logging of the `log_on_error` decorator.
->
-> Default: tuple() (No exceptions will get caught)
 
 **logger** *(optional)*
 > An alternative logger object. If no logger is given logdecorator creates a
@@ -163,10 +159,22 @@ Each decorator takes the following arguments:
 >
 > Default: Creates a new logger with the name `decorated_function.__module__`
 
-**reraise** *(optional)*
-> Controls if caught exceptions should get reraised after logging
+
+#### log_on_end
+
+
+**log_level**
+> The log level at which the message should be send
+
+**message**
+> The message to log
+
+**logger** *(optional)*
+> An alternative logger object. If no logger is given logdecorator creates a
+> logger object with the name of the module the decorated function is in
+> (`decorated_function.__module__`)
 >
-> Default: False
+> Default: Creates a new logger with the name `decorated_function.__module__`
 
 **result_format_variable** *(optional)*
 > The variable name one can use in the message to reference the result of the
@@ -174,6 +182,68 @@ Each decorator takes the following arguments:
 > e.g. @log_on_end(DEBUG, "Result was: {result!r}")
 >
 > Default: "result"
+
+#### log_on_error
+
+
+**log_level**
+> The log level at which the message should be send
+
+**message**
+> The message to log
+
+**logger** *(optional)*
+> An alternative logger object. If no logger is given logdecorator creates a
+> logger object with the name of the module the decorated function is in
+> (`decorated_function.__module__`)
+>
+> Default: Creates a new logger with the name `decorated_function.__module__`
+
+**on_exceptions** *(optional)*
+> A list containing exception classes which should get caught and trigger the
+> logging of the `log_on_error` decorator.
+>
+> Default: tuple() (No exceptions will get caught)
+
+**reraise** *(optional)*
+> Controls if caught exceptions should get reraised after logging
+>
+> Default: False
+
+**exception_format_variable** *(optional)*
+> The variable name one can use in the message to reference the caught exception
+> raised in the decorated function
+> e.g. @log_on_error(ERROR, "Error was: {e!r}", ...)
+>
+> Default: "e"
+
+#### log_exception
+
+
+**log_level**
+> The log level at which the message should be send
+
+**message**
+> The message to log
+
+**logger** *(optional)*
+> An alternative logger object. If no logger is given logdecorator creates a
+> logger object with the name of the module the decorated function is in
+> (`decorated_function.__module__`)
+>
+> Default: Creates a new logger with the name `decorated_function.__module__`
+
+
+**on_exceptions** *(optional)*
+> A list containing exception classes which should get caught and trigger the
+> logging of the `log_on_error` decorator.
+>
+> Default: tuple() (No exceptions will get caught)
+
+**reraise** *(optional)*
+> Controls if caught exceptions should get reraised after logging
+>
+> Default: False
 
 **exception_format_variable** *(optional)*
 > The variable name one can use in the message to reference the caught exception
