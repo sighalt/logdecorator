@@ -38,6 +38,29 @@ Installation is as easy as it can get:
 How to use it
 -------------
 
+tl;dr
+~~~~~
+
+.. code:: python
+
+    import requests
+    from logdecorator import log_on_start, log_on_end, log_on_error, log_exception
+
+
+    @log_on_start(logging.DEBUG, "Start downloading {url:s}...")
+    @log_on_error(logging.ERROR, "Error on downloading {url:s}: {e!r}",
+                  on_exceptions=IOError,
+                  reraise=True)
+    @log_on_end(logging.DEBUG, "Downloading {url:s} finished successfully within {r.elapsed!s}")
+    def download(url):
+        # some code
+        response = requests.get(url)
+        # some more code
+        return response
+
+Long story
+~~~~~~~~~~
+
 Imagine a function ``download`` with no arguments and some download code
 in it.
 
