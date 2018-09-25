@@ -23,7 +23,8 @@ Update: logdecorator==2.0
 
 Thanks to all dependants :) I just released a new version of
 logdecorator (2.0). You can read the changes at my
-`blog <https://www.sighalt.de/a-new-logdecorator-version-is-available-o.html>`__.
+`blog <https://www.sighalt.de/a-new-logdecorator-version-is-available-o.html>`__
+or in the `changelog <CHANGES.rst>`_.
 
 Installation
 ------------
