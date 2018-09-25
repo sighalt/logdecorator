@@ -51,7 +51,7 @@ tl;dr
     @log_on_error(logging.ERROR, "Error on downloading {url:s}: {e!r}",
                   on_exceptions=IOError,
                   reraise=True)
-    @log_on_end(logging.DEBUG, "Downloading {url:s} finished successfully within {r.elapsed!s}")
+    @log_on_end(logging.DEBUG, "Downloading {url:s} finished successfully within {result.elapsed!s}")
     def download(url):
         # some code
         response = requests.get(url)
