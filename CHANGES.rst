@@ -1,6 +1,12 @@
 Changlog
 ========
 
+2.2
+---
+* added asyncio support
+* ISSUE #2: changed default argument of `reraise`
+* ISSUE #5: removed log_level argument from log_exception
+
 2.1
 ---
 * made log_exception decorator importable from logdecorator package
