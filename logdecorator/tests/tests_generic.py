@@ -1,9 +1,11 @@
+import sys
 import asyncio
 import logging
+import warnings
 from unittest import TestCase
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
 
-from logdecorator.async import async_log_on_end, async_log_on_start, async_log_on_error, async_log_exception
+from logdecorator.asyncio import async_log_on_end, async_log_on_start, async_log_on_error, async_log_exception
 from logdecorator.decorator import log_exception, log_on_start, log_on_error, log_on_end
 
 
@@ -70,7 +72,9 @@ class TestDecorators(TestCase):
                            "test message {arg1:d}, {arg2:d}",
                            logger=self.logger)
         fn = dec(async_test_func)
-        fn(1, 2)
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore", category=RuntimeWarning)
+            fn(1, 2)
 
         self.assertEqual(0, len(self.log_handler.messages["info"]))
 
@@ -110,8 +114,13 @@ class TestDecorators(TestCase):
                            reraise=False)
         fn = dec(mocked_func)
         fn(1, 2)
-        self.assertIn("test message TestException('test exception',)",
-                      self.log_handler.messages["info"])
+
+        if sys.version_info < (3, 7):
+            self.assertIn("test message TestException('test exception',)",
+                          self.log_handler.messages["info"])
+        else:
+            self.assertIn("test message TestException('test exception')",
+                          self.log_handler.messages["info"])
 
     def test_async_log_on_error(self):
         mocked_func = Mock(side_effect=TestException("test exception"))
@@ -127,8 +136,12 @@ class TestDecorators(TestCase):
         fn = dec(async_mocked_func)
         self.loop.run_until_complete(fn(1, 2))
 
-        self.assertIn("test message TestException('test exception',)",
-                      self.log_handler.messages["info"])
+        if sys.version_info < (3, 7):
+            self.assertIn("test message TestException('test exception',)",
+                          self.log_handler.messages["info"])
+        else:
+            self.assertIn("test message TestException('test exception')",
+                          self.log_handler.messages["info"])
 
     def test_log_on_error_reraise(self):
         mocked_func = Mock(side_effect=TestException("test exception"))
@@ -143,8 +156,12 @@ class TestDecorators(TestCase):
         with self.assertRaises(TestException):
             fn(1, 2)
 
-        self.assertIn("test message TestException('test exception',)",
-                      self.log_handler.messages["info"])
+        if sys.version_info < (3, 7):
+            self.assertIn("test message TestException('test exception',)",
+                          self.log_handler.messages["info"])
+        else:
+            self.assertIn("test message TestException('test exception')",
+                          self.log_handler.messages["info"])
 
     def test_log_exception(self):
         self.logger.exception = Mock()
