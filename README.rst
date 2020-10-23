@@ -164,6 +164,16 @@ logdecorator provides four different built-in decorators:
 
 whose behaviour corresponds to their names.
 
+Additionally logdecorator supports decorating async callables with the decorators:
+
+-  async\_log\_on\_start
+-  async\_log\_on\_end
+-  async\_log\_on\_error
+-  async\_log\_exception
+
+These decorators are found at logdecorator.asyncio
+
+
 Use variables in messages
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -191,91 +201,111 @@ Sticking to the previous example one could write:
 Which results in the message
 ``Start downloading 'http://my.file.com/file.bin'`` gets logged.
 
-Arguments
-~~~~~~~~~
 
-log\_on\_start
-^^^^^^^^^^^^^^
+Documentation
+~~~~~~~~~~~~~
 
-**log\_level** > The log level at which the message should be send
+log\_on\_start / async\_log\_on\_start
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-**message** > The message to log
+.. list-table::
+    :header-rows: 1
 
-**logger** *(optional)* > An alternative logger object. If no logger is
-given logdecorator creates a > logger object with the name of the module
-the decorated function is in > (``decorated_function.__module__``) > >
-Default: Creates a new logger with the name
-``decorated_function.__module__``
+    * - Argument
+      - required?
+      - Description
+    * - log\_level
+      - yes
+      - The log level at which the message should be send
+    * - message
+      - yes
+      - The message to log
+    * - logger
+      - no
+      - An alternative logger object. If no logger is given logdecorator creates a logger object with the name of the module the decorated function is in (``decorated_function.__module__``) Default: Creates a new logger with the name ``decorated_function.__module__``
 
-log\_on\_end
-^^^^^^^^^^^^
 
-**log\_level** > The log level at which the message should be send
 
-**message** > The message to log
+log\_on\_end / async\_log\_on\_end
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-**logger** *(optional)* > An alternative logger object. If no logger is
-given logdecorator creates a > logger object with the name of the module
-the decorated function is in > (``decorated_function.__module__``) > >
-Default: Creates a new logger with the name
-``decorated_function.__module__``
+.. list-table::
+    :header-rows: 1
 
-**result\_format\_variable** *(optional)* > The variable name one can
-use in the message to reference the result of the > decorated function >
-e.g. @log\_on\_end(DEBUG, "Result was: {result!r}") > > Default:
-"result"
+    * - Argument
+      - required?
+      - Description
+    * - log\_level
+      - yes
+      - The log level at which the message should be send
+    * - message
+      - yes
+      - The message to log
+    * - logger
+      - no
+      - An alternative logger object. If no logger is given logdecorator creates a logger object with the name of the module the decorated function is in (``decorated_function.__module__``) Default: Creates a new logger with the name ``decorated_function.__module__``
+    * - result\_format\_variable
+      - no
+      - The variable name one can use in the message to reference the result of the > decorated function e.g. @log\_on\_end(DEBUG, "Result was: {result!r}") Default: "result"
 
-log\_on\_error
-^^^^^^^^^^^^^^
 
-**log\_level** > The log level at which the message should be send
 
-**message** > The message to log
+log\_on\_error / async\_log\_on\_error
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-**logger** *(optional)* > An alternative logger object. If no logger is
-given logdecorator creates a > logger object with the name of the module
-the decorated function is in > (``decorated_function.__module__``) > >
-Default: Creates a new logger with the name
-``decorated_function.__module__``
+.. list-table::
+    :header-rows: 1
 
-**on\_exceptions** *(optional)* > A tuple containing exception classes
-or a single exception, which should get > caught and trigger the logging
-of the ``log_on_error`` decorator. > > Default: tuple() (No exceptions
-will get caught)
+    * - Argument
+      - required?
+      - Description
+    * - log\_level
+      - yes
+      - The log level at which the message should be send
+    * - message
+      - yes
+      - The message to log
+    * - logger
+      - no
+      - An alternative logger object. If no logger is given logdecorator creates a logger object with the name of the module the decorated function is in (``decorated_function.__module__``) Default: Creates a new logger with the name ``decorated_function.__module__``
+    * - on\_exceptions
+      - no
+      - A tuple containing exception classes or a single exception, which should get caught and trigger the logging of the ``log_on_error`` decorator. Default: tuple() (No exceptions will get caught)
+    * - reraise
+      - no
+      - Controls if caught exceptions should get reraised after logging. Default: True
+    * - exception\_format\_variable
+      - no
+      - The variable name one can use in the message to reference the caught exception raised in the decorated function > e.g. @log\_on\_error(ERROR, "Error was: {e!r}", ...) Default: "e"
 
-**reraise** *(optional)* > Controls if caught exceptions should get
-reraised after logging > > Default: False
 
-**exception\_format\_variable** *(optional)* > The variable name one can
-use in the message to reference the caught exception > raised in the
-decorated function > e.g. @log\_on\_error(ERROR, "Error was: {e!r}",
-...) > > Default: "e"
+log\_exception / async\_log\_exception
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-log\_exception
-^^^^^^^^^^^^^^
+.. list-table::
+    :header-rows: 1
 
-**log\_level** > The log level at which the message should be send
-
-**message** > The message to log
-
-**logger** *(optional)* > An alternative logger object. If no logger is
-given logdecorator creates a > logger object with the name of the module
-the decorated function is in > (``decorated_function.__module__``) > >
-Default: Creates a new logger with the name
-``decorated_function.__module__``
-
-**on\_exceptions** *(optional)* > A tuple containing exception classes
-or a single exception, which should get > caught and trigger the logging
-of the ``log_on_error`` decorator. > > Default: tuple() (No exceptions
-will get caught)
-
-**reraise** *(optional)* > Controls if caught exceptions should get
-reraised after logging > > Default: False
-
-**exception\_format\_variable** *(optional)* > The variable name one can
-use in the message to reference the caught exception > raised in the
-decorated function > e.g. @log\_on\_error(ERROR, "Error was: {e!r}",
-...) > > Default: "e"
+    * - Argument
+      - required?
+      - Description
+    * - log\_level
+      - yes
+      - The log level at which the message should be send
+    * - message
+      - yes
+      - The message to log
+    * - logger
+      - no
+      - An alternative logger object. If no logger is given logdecorator creates a logger object with the name of the module the decorated function is in (``decorated_function.__module__``) Default: Creates a new logger with the name ``decorated_function.__module__``
+    * - on\_exceptions
+      - no
+      - A tuple containing exception classes or a single exception, which should get caught and trigger the logging of the ``log_on_error`` decorator. Default: tuple() (No exceptions will get caught)
+    * - reraise
+      - no
+      -  Controls if caught exceptions should get reraised after logging. Default: False
+    * - exception\_format\_variable
+      - no
+      - The variable name one can use in the message to reference the caught exception raised in the decorated function e.g. @log\_on\_error(ERROR, "Error was: {e!r}", ...) Default: "e"
 
 .. |Downloads| image:: https://pepy.tech/badge/logdecorator
    :target: https://pepy.tech/project/logdecorator
