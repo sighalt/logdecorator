@@ -2,7 +2,9 @@
 coverage.xml
 .idea/
 __pycache__/
+*.pyc
 logdecorator.egg-info/
 dist
 build
 README
+.tox/
