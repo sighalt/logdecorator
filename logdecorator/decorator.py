@@ -19,10 +19,11 @@ class DecoratorMixin(object):
 
 class LoggingDecorator(DecoratorMixin):
 
-    def __init__(self, log_level, message, *, logger=None):
+    def __init__(self, log_level, message, *, logger=None, callable_format_variable="callable"):
         self.log_level = log_level
         self.message = message
         self._logger = logger
+        self.callable_format_variable = callable_format_variable
 
     @staticmethod
     def log(logger, log_level, msg):
@@ -41,13 +42,21 @@ class LoggingDecorator(DecoratorMixin):
 
         return extensive_kwargs.arguments
 
+    def build_msg(self, fn, fn_args, fn_kwargs, **extra):
+        format_kwargs = self.build_extensive_kwargs(fn, *fn_args, **fn_kwargs)
+        extra.update({
+            self.callable_format_variable: fn,
+        })
+        format_kwargs.update(extra)
+
+        return self.message.format(**format_kwargs)
+
 
 class log_on_start(LoggingDecorator):
 
     def _do_logging(self, fn, *args, **kwargs):
         logger = self.get_logger(fn)
-        extensive_kwargs = self.build_extensive_kwargs(fn, *args, **kwargs)
-        msg = self.message.format(**extensive_kwargs)
+        msg = self.build_msg(fn, fn_args=args, fn_kwargs=kwargs)
 
         self.log(logger, self.log_level, msg)
 
@@ -65,9 +74,10 @@ class log_on_end(LoggingDecorator):
 
     def _do_logging(self, fn, result, *args, **kwargs):
         logger = self.get_logger(fn)
-        extensive_kwargs = self.build_extensive_kwargs(fn, *args, **kwargs)
-        extensive_kwargs[self.result_format_variable] = result
-        msg = self.message.format(**extensive_kwargs)
+        extra = {
+            self.result_format_variable: result
+        }
+        msg = self.build_msg(fn, fn_args=args, fn_kwargs=kwargs, **extra)
 
         self.log(logger, self.log_level, msg)
 
@@ -90,9 +100,10 @@ class log_on_error(LoggingDecorator):
 
     def _do_logging(self, fn, exception, *args, **kwargs):
         logger = self.get_logger(fn)
-        extensive_kwargs = self.build_extensive_kwargs(fn, *args, **kwargs)
-        extensive_kwargs[self.exception_format_variable] = exception
-        msg = self.message.format(**extensive_kwargs)
+        extra = {
+            self.exception_format_variable: exception
+        }
+        msg = self.build_msg(fn, fn_args=args, fn_kwargs=kwargs, **extra)
 
         self.log(logger, self.log_level, msg)
 

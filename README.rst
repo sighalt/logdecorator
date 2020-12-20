@@ -205,6 +205,47 @@ Which results in the message
 Documentation
 ~~~~~~~~~~~~~
 
+format variables
+^^^^^^^^^^^^^^^^
+
+The following variable names can be used to construct the message:
+
+.. list-table::
+    :header-rows: 1
+
+    * - Default variable name
+      - Description
+      - log_on_start
+      - log_on_end
+      - log_on_error
+      - log_exception
+    * - callable
+      - The decorated callable
+      - Yes
+      - Yes
+      - Yes
+      - Yes
+    * - *args/kwargs*
+      - Whatever arguments given to the callable can be used in the logging message
+      - Yes
+      - Yes
+      - Yes
+      - Yes
+    * - result
+      - Whatever the decorated callable returns
+      - No
+      - Yes
+      - No
+      - No
+      - No
+    * - e
+      - The exception raised while executing the callable
+      - No
+      - No
+      - Yes
+      - Yes
+
+
 log\_on\_start / async\_log\_on\_start
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -223,7 +264,9 @@ log\_on\_start / async\_log\_on\_start
     * - logger
       - no
       - An alternative logger object. If no logger is given logdecorator creates a logger object with the name of the module the decorated function is in (``decorated_function.__module__``) Default: Creates a new logger with the name ``decorated_function.__module__``
-
+    * - callable_format_variable
+      - no
+      - The variable name one can use in the message to reference the decorated callable. e.g. @log\_on\_start(ERROR, "Called {callable.__name__:s}", ...) Default: "callable"
 
 
 log\_on\_end / async\_log\_on\_end
@@ -247,6 +290,9 @@ log\_on\_end / async\_log\_on\_end
     * - result\_format\_variable
       - no
       - The variable name one can use in the message to reference the result of the > decorated function e.g. @log\_on\_end(DEBUG, "Result was: {result!r}") Default: "result"
+    * - callable_format_variable
+      - no
+      - The variable name one can use in the message to reference the decorated callable. e.g. @log\_on\_start(ERROR, "Called {callable.__name__:s}", ...) Default: "callable"
 
 
 
@@ -277,6 +323,9 @@ log\_on\_error / async\_log\_on\_error
     * - exception\_format\_variable
       - no
       - The variable name one can use in the message to reference the caught exception raised in the decorated function > e.g. @log\_on\_error(ERROR, "Error was: {e!r}", ...) Default: "e"
+    * - callable_format_variable
+      - no
+      - The variable name one can use in the message to reference the decorated callable. e.g. @log\_on\_start(ERROR, "Called {callable.__name__:s}", ...) Default: "callable"
 
 
 log\_exception / async\_log\_exception
@@ -306,6 +355,9 @@ log\_exception / async\_log\_exception
     * - exception\_format\_variable
       - no
       - The variable name one can use in the message to reference the caught exception raised in the decorated function e.g. @log\_on\_error(ERROR, "Error was: {e!r}", ...) Default: "e"
+    * - callable_format_variable
+      - no
+      - The variable name one can use in the message to reference the decorated callable. e.g. @log\_on\_start(ERROR, "Called {callable.__name__:s}", ...) Default: "callable"
 
 .. |Downloads| image:: https://pepy.tech/badge/logdecorator
    :target: https://pepy.tech/project/logdecorator
