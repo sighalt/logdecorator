@@ -1,6 +1,7 @@
 import inspect
 import logging
 from functools import wraps
+from warnings import warn
 
 
 class DecoratorMixin(object):
@@ -19,10 +20,16 @@ class DecoratorMixin(object):
 
 class LoggingDecorator(DecoratorMixin):
 
-    def __init__(self, log_level, message, *, logger=None, callable_format_variable="callable"):
+    def __init__(self, log_level, message, *, logger=None, handler=None, callable_format_variable="callable"):
         self.log_level = log_level
         self.message = message
+
+        if handler is not None and logger is not None:
+            warn("Detected mixed use of `handler` and `logger` argument. The handler argument is ignored.")
+            handler = None
+
         self._logger = logger
+        self._handler = handler
         self.callable_format_variable = callable_format_variable
 
     @staticmethod
@@ -32,6 +39,9 @@ class LoggingDecorator(DecoratorMixin):
     def get_logger(self, fn):
         if self._logger is None:
             self._logger = logging.getLogger(fn.__module__)
+
+            if self._handler is not None:
+                self._logger.addHandler(self._handler)
 
         return self._logger
 
@@ -68,8 +78,10 @@ class log_on_start(LoggingDecorator):
 class log_on_end(LoggingDecorator):
 
     def __init__(self, log_level, message, *, logger=None,
+                 handler=None, callable_format_variable="callable",
                  result_format_variable="result"):
-        super().__init__(log_level, message, logger=logger)
+        super().__init__(log_level, message, logger=logger, handler=handler,
+                         callable_format_variable=callable_format_variable)
         self.result_format_variable = result_format_variable
 
     def _do_logging(self, fn, result, *args, **kwargs):
@@ -91,9 +103,11 @@ class log_on_end(LoggingDecorator):
 class log_on_error(LoggingDecorator):
 
     def __init__(self, log_level, message, *, logger=None,
+                 handler=None, callable_format_variable="callable",
                  on_exceptions=None, reraise=True,
                  exception_format_variable="e"):
-        super().__init__(log_level, message, logger=logger)
+        super().__init__(log_level, message, logger=logger, handler=handler,
+                         callable_format_variable=callable_format_variable)
         self.on_exceptions = on_exceptions
         self.reraise = reraise
         self.exception_format_variable = exception_format_variable
@@ -125,9 +139,12 @@ class log_on_error(LoggingDecorator):
 
 class log_exception(log_on_error):
 
-    def __init__(self, message, *, logger=None, on_exceptions=None,
+    def __init__(self, message, *, logger=None,
+                 handler=None, callable_format_variable="callable",
+                 on_exceptions=None,
                  reraise=True, exception_format_variable="e"):
         super().__init__(logging.ERROR, message, logger=logger,
+                         handler=handler, callable_format_variable=callable_format_variable,
                          on_exceptions=on_exceptions, reraise=reraise,
                          exception_format_variable=exception_format_variable)
 
