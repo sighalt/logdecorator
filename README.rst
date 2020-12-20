@@ -237,7 +237,6 @@ The following variable names can be used to construct the message:
       - Yes
       - No
       - No
-      - No
     * - e
       - The exception raised while executing the callable
       - No
