@@ -8,3 +8,4 @@ dist
 build
 README
 .tox/
+venv

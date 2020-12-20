@@ -182,3 +182,33 @@ class TestDecorators(TestCase):
         fn = dec(async_test_func)
         self.loop.run_until_complete(fn(2, "asd"))
         self.assertEqual(self.logger.exception.call_count, 1)
+
+    def test_callable_name_variable(self):
+        dec = log_on_start(logging.INFO, "{callable.__name__}", logger=self.logger)
+        fn = dec(test_func)
+        fn(1, 2)
+        self.assertIn("test_func", self.log_handler.messages["info"])
+
+    def test_custom_callable_name_variable(self):
+        dec = log_on_start(logging.INFO, "{mycallable.__name__}", logger=self.logger, callable_format_variable="mycallable")
+        fn = dec(test_func)
+        fn(1, 2)
+        self.assertIn("test_func", self.log_handler.messages["info"])
+
+    def test_custom_callable_name_variable_on_end(self):
+        dec = log_on_end(logging.INFO, "{mycallable.__name__}", logger=self.logger, callable_format_variable="mycallable")
+        fn = dec(test_func)
+        fn(1, 2)
+        self.assertIn("test_func", self.log_handler.messages["info"])
+
+    def test_async_callable_name_variable(self):
+        dec = log_on_start(logging.INFO, "{callable.__name__}", logger=self.logger)
+        fn = dec(async_test_func)
+        self.loop.run_until_complete(fn(1, 2))
+        self.assertIn("async_test_func", self.log_handler.messages["info"])
+
+    def test_custom_handler(self):
+        dec = log_on_start(logging.ERROR, "test message {arg1:d}, {arg2:d}", handler=self.log_handler)
+        fn = dec(test_func)
+        fn(1, 2)
+        self.assertIn("test message 1, 2", self.log_handler.messages["error"])
