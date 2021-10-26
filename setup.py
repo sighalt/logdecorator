@@ -10,7 +10,7 @@ with open(path.join(this_directory, "README.rst"), encoding="utf-8") as f:
 setup(
     name='logdecorator',
     packages=['logdecorator'],
-    version='2.3',
+    version='2.4',
     description='Move logging code out of your business logic with decorators',
     long_description=README,
     long_description_content_type='text/x-rst',
