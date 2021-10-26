@@ -212,3 +212,9 @@ class TestDecorators(TestCase):
         fn = dec(test_func)
         fn(1, 2)
         self.assertIn("test message 1, 2", self.log_handler.messages["error"])
+
+    def test_omitted_optional_parameters_used_in_format_string(self):
+        dec = log_on_start(logging.ERROR, "test message {kwarg1!r}", handler=self.log_handler)
+        fn = dec(test_func)
+        fn(1, 2)
+        self.assertIn("test message None", self.log_handler.messages["error"])

@@ -48,15 +48,20 @@ class LoggingDecorator(DecoratorMixin):
     @staticmethod
     def build_extensive_kwargs(fn, *args, **kwargs):
         function_signature = inspect.signature(fn)
-        extensive_kwargs = function_signature.bind_partial(*args, **kwargs)
+        bound_arguments = function_signature.bind_partial(*args, **kwargs)
 
-        return extensive_kwargs.arguments
+        extensive_kwargs = {
+            param_name: bound_arguments.arguments.get(param_name, param_object.default)
+            for param_name, param_object
+            in bound_arguments.signature.parameters.items()
+        }
 
-    def build_msg(self, fn, fn_args, fn_kwargs, **extra):
+        return extensive_kwargs
+
+    def build_msg(self, fn: FunctionType, fn_args: Any, fn_kwargs: Any,
+                  **extra: Any) -> str:
         format_kwargs = self.build_extensive_kwargs(fn, *fn_args, **fn_kwargs)
-        extra.update({
-            self.callable_format_variable: fn,
-        })
+        extra[self.callable_format_variable] = fn
         format_kwargs.update(extra)
 
         return self.message.format(**format_kwargs)
