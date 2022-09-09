@@ -170,5 +170,5 @@ class log_exception(log_on_error):
                          exception_format_variable=exception_format_variable)
 
     @staticmethod
-    def log(logger: Logger, log_level: Union[str, int], msg: str) -> None:
+    def log(logger: Logger, msg: str) -> None:
         logger.exception(msg)
