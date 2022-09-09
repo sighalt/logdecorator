@@ -145,7 +145,7 @@ class log_on_error(LoggingDecorator):
     def execute(self, fn: FunctionType, *args: Any, **kwargs: Any) -> Any:
         try:
             return super().execute(fn, *args, **kwargs)
-        except Exception as e:
+        except BaseException as e:
             self.on_error(fn, e, *args, **kwargs)
 
     def on_error(self, fn: FunctionType, exception: Exception, *args: Any, **kwargs: Any) -> None:
@@ -170,5 +170,5 @@ class log_exception(log_on_error):
                          exception_format_variable=exception_format_variable)
 
     @staticmethod
-    def log(logger: Logger, log_level: Union[str, int], msg: str) -> None:
+    def log(logger: Logger, msg: str) -> None:
         logger.exception(msg)
