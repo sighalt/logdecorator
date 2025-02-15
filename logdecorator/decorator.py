@@ -2,7 +2,7 @@ import inspect
 import logging
 from functools import wraps
 from logging import Logger, Handler
-from typing import Callable, Any, Dict, Tuple, Optional, Union, Type, TypeVar, ParamSpec
+from typing import Callable, Any, Dict, Tuple, Optional, Union, Type, TypeVar, ParamSpec, Optional
 from warnings import warn
 
 P = ParamSpec("P")
@@ -11,13 +11,13 @@ T = TypeVar("T")
 
 class DecoratorMixin(object):
 
-    def execute(self, fn: Callable[P, T], *args: P.args, **kwargs: P.kwargs) -> T:
+    def execute(self, fn: Callable[P, T], *args: P.args, **kwargs: P.kwargs) -> Optional[T]:
         return fn(*args, **kwargs)
 
-    def __call__(self, fn: Callable[P, T]) -> Callable[P, T]:
+    def __call__(self, fn: Callable[P, T]) -> Callable[P, Optional[T]]:
 
         @wraps(fn)
-        def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
+        def wrapper(*args: P.args, **kwargs: P.kwargs) -> Optional[T]:
             return self.execute(fn, *args, **kwargs)
 
         return wrapper
@@ -86,7 +86,7 @@ class log_on_start(LoggingDecorator):
 
         self.log(logger, self.log_level, msg)
 
-    def execute(self, fn: Callable[P, T], *args: P.args, **kwargs: P.kwargs) -> T:
+    def execute(self, fn: Callable[P, T], *args: P.args, **kwargs: P.kwargs) -> Optional[T]:
         self._do_logging(fn, *args, **kwargs)
         return super().execute(fn, *args, **kwargs)
 
@@ -109,7 +109,7 @@ class log_on_end(LoggingDecorator):
 
         self.log(logger, self.log_level, msg)
 
-    def execute(self, fn: Callable[P, T], *args: P.args, **kwargs: P.kwargs) -> T:
+    def execute(self, fn: Callable[P, T], *args: P.args, **kwargs: P.kwargs) -> Optional[T]:
         result = super().execute(fn, *args, **kwargs)
         self._do_logging(fn, result, *args, **kwargs)
 
@@ -144,11 +144,12 @@ class log_on_error(LoggingDecorator):
 
         self.log(logger, self.log_level, msg)
 
-    def execute(self, fn: Callable[P, T], *args: P.args, **kwargs: P.kwargs) -> T:
+    def execute(self, fn: Callable[P, T], *args: P.args, **kwargs: P.kwargs) -> Optional[T]:
         try:
             return super().execute(fn, *args, **kwargs)
         except BaseException as e:
             self.on_error(fn, e, *args, **kwargs)
+            return None
 
     def on_error(self, fn: Callable[P, T], exception: BaseException, *args: P.args, **kwargs: P.kwargs) -> None:
         try:
