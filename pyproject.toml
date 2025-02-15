@@ -1,0 +1,24 @@
+[project]
+name = "logdecorator"
+version = "2.5"
+authors = [
+  { name="Jakob Rößler", email="roessler@sighalt.de" },
+]
+description = "Move logging code out of your business logic with decorators"
+readme = "README.rst"
+requires-python = ">=3.10"
+classifiers = [
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Topic :: Software Development",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: System :: Logging",
+]
+
+[project.urls]
+Homepage = "https://github.com/sighalt/logdecorator"
+Issues = "https://github.com/sighalt/logdecorator/issues"
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
