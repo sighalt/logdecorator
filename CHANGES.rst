@@ -1,6 +1,18 @@
 Changlog
 ========
 
+2.5
+---
+* ISSUE #21: Decorators hide actual type hints
+* Fix for non-working log_on_error due to bad scope of exceptions.
+
+2.4
+---
+
+2.3
+---
+
+
 2.2
 ---
 * added asyncio support
