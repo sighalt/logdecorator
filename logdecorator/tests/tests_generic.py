@@ -22,6 +22,10 @@ class TestException(Exception):
     pass
 
 
+class TestExceptionAsBaseExceptionInheritant(BaseException):
+    pass
+
+
 class MockLoggingHandler(logging.Handler):
     """Mock logging handler to check for expected logs.
 
@@ -171,6 +175,34 @@ class TestDecorators(TestCase):
                             reraise=False)
         fn = dec(test_func)
         fn(2, "asd")
+        self.assertEqual(self.logger.exception.call_count, 1)
+
+    def test_on_error_direct_base_exception_inheritant(self):
+        mocked_func = Mock(side_effect=TestExceptionAsBaseExceptionInheritant("test exception"))
+
+        dec = log_on_error(
+            logging.ERROR,
+            "my exception was thrown",
+            logger=self.logger,
+            on_exceptions=TestExceptionAsBaseExceptionInheritant,
+            reraise=False,
+        )
+        fn = dec(mocked_func)
+        fn()
+
+        self.assertIn("my exception was thrown",
+                      self.log_handler.messages["error"])
+
+    def test_log_exception_with_direct_base_exception_inheritant(self):
+        self.logger.exception = Mock()
+        mocked_func = Mock(side_effect=TestExceptionAsBaseExceptionInheritant("test exception"))
+
+        dec = log_exception("test message",
+                            logger=self.logger,
+                            on_exceptions=TestExceptionAsBaseExceptionInheritant,
+                            reraise=False)
+        fn = dec(mocked_func)
+        fn()
         self.assertEqual(self.logger.exception.call_count, 1)
 
     def test_async_log_exception(self):

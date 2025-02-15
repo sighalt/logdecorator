@@ -125,16 +125,16 @@ class log_on_error(LoggingDecorator):
                  logger: Optional[Logger] = None,
                  handler: Optional[Handler] = None,
                  callable_format_variable: str = "callable",
-                 on_exceptions: Optional[Union[Type[Exception], Tuple[Type[Exception]], Tuple[()]]] = None,
+                 on_exceptions: Optional[Union[Type[BaseException], Tuple[Type[BaseException]], Tuple[()]]] = None,
                  reraise: bool = True,
                  exception_format_variable: str = "e"):
         super().__init__(log_level, message, logger=logger, handler=handler,
                          callable_format_variable=callable_format_variable)
-        self.on_exceptions: Union[Type[Exception], Tuple[Type[Exception]], Tuple[()]] = on_exceptions or ()
+        self.on_exceptions: Union[Type[BaseException], Tuple[Type[BaseException]], Tuple[()]] = on_exceptions or ()
         self.reraise = reraise
         self.exception_format_variable = exception_format_variable
 
-    def _do_logging(self, fn: Callable[P, T], exception: Exception, *args: P.args, **kwargs: P.kwargs
+    def _do_logging(self, fn: Callable[P, T], exception: BaseException, *args: P.args, **kwargs: P.kwargs
                     ) -> None:
         logger = self.get_logger(fn)
         extra: Dict[str, Any] = {
@@ -147,10 +147,10 @@ class log_on_error(LoggingDecorator):
     def execute(self, fn: Callable[P, T], *args: P.args, **kwargs: P.kwargs) -> T:
         try:
             return super().execute(fn, *args, **kwargs)
-        except Exception as e:
+        except BaseException as e:
             self.on_error(fn, e, *args, **kwargs)
 
-    def on_error(self, fn: Callable[P, T], exception: Exception, *args: P.args, **kwargs: P.kwargs) -> None:
+    def on_error(self, fn: Callable[P, T], exception: BaseException, *args: P.args, **kwargs: P.kwargs) -> None:
         try:
             raise exception
         except self.on_exceptions:
@@ -163,7 +163,7 @@ class log_exception(log_on_error):
 
     def __init__(self, message: str, *, logger: Optional[Logger] = None,
                  handler: Optional[Handler] = None, callable_format_variable: str = "callable",
-                 on_exceptions:  Optional[Union[Type[Exception], Tuple[Type[Exception]], Tuple[()]]] = None,
+                 on_exceptions:  Optional[Union[Type[BaseException], Tuple[Type[BaseException]], Tuple[()]]] = None,
                  reraise: bool = True, exception_format_variable: str = "e"):
         super().__init__(logging.ERROR, message, logger=logger,
                          handler=handler, callable_format_variable=callable_format_variable,
